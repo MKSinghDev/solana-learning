@@ -1,0 +1,34 @@
+import { clusterApiUrl, Connection, Keypair, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+
+const wallet = new Keypair();
+const publicKey = new PublicKey(wallet.publicKey);
+const secretKey = wallet.secretKey;
+
+const getWalletBalance = async () => {
+    try {
+        const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
+        const walletBalance = await connection.getBalance(publicKey);
+        console.log('walletBalance', walletBalance / LAMPORTS_PER_SOL);
+    } catch (error) {
+        console.log('error', error);
+    }
+}
+
+const airdrop = async () => {
+    try {
+        const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
+        const airdropSignature = await connection.requestAirdrop(publicKey, 2 * LAMPORTS_PER_SOL);
+        await connection.confirmTransaction(airdropSignature);
+        console.log('airdropSignature', airdropSignature);
+    } catch (error) {
+        console.log('error', error);
+    }
+}
+
+const main = async () => {
+    await getWalletBalance();
+    await airdrop();
+    await getWalletBalance();
+}
+
+main();
