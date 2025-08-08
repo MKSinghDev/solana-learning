@@ -1,12 +1,13 @@
 import { describe } from "mocha";
 import { assert } from "chai";
-import { AnchorProvider, BN, setProvider, web3, workspace } from "@coral-xyz/anchor";
+import { AnchorProvider, BN, Program, setProvider, web3, workspace } from "@coral-xyz/anchor";
+import { CalculatorDapp } from "../target/types/calculator_dapp";
 
 describe('calculator', () => {
     const provider = AnchorProvider.local();
     setProvider(provider);
     const calculator = web3.Keypair.generate();
-    const program = workspace['calculator-dapp']
+    const program = workspace['calculator-dapp'] as Program<CalculatorDapp>
 
     it('Creates a calculator', async () => {
         await program.rpc.create("Welcome to Solana Calculator", {
