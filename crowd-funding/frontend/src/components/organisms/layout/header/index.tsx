@@ -1,8 +1,9 @@
+import Link from 'next/link';
 import clsx from 'clsx';
-import { LogIn } from 'lucide-react';
+import { Coins, Wallet } from 'lucide-react';
 
 import Logo from '~/components/molecules/logo';
-import { Button } from '~/components/ui/button';
+import { Button, buttonVariants } from '~/components/ui/button';
 import {
     NavigationMenu,
     NavigationMenuContent,
@@ -123,7 +124,7 @@ const Header = () => (
                                 <NavigationMenuItem className="w-full">
                                     <NavigationMenuLink asChild>
                                         <SignInButton>
-                                            <LogIn className="mr-1 size-4" />
+                                            <Wallet className="mr-1 size-4" />
                                             Connect Wallet
                                         </SignInButton>
                                     </NavigationMenuLink>
@@ -202,10 +203,20 @@ const Header = () => (
         </div>
         {/* Right side */}
         <RightPortionWrapper>
-            <SignedIn>{({ user }) => <UserMenu user={user} />}</SignedIn>
+            <SignedIn>
+                {({ user }) => (
+                    <>
+                        <Link href="/campaigns/new" className={cn(buttonVariants())}>
+                            <Coins className="mr-2 size-4" />
+                            New campaign
+                        </Link>
+                        <UserMenu user={user} />
+                    </>
+                )}
+            </SignedIn>
             <SignedOut>
-                <SignInButton>
-                    <LogIn className="mr-1 size-4" />
+                <SignInButton variant="default">
+                    <Wallet className="mr-1 size-4" />
                     Connect Wallet
                 </SignInButton>
             </SignedOut>

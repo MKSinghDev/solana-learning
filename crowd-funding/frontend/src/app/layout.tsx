@@ -21,7 +21,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
             <body className={cn(inter.className, 'flex flex-col min-h-svh antialiased')}>
                 <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
                     <InitWallet />
-                    <Toaster richColors />
+                    <Toaster richColors position="top-right" />
                     {children}
                 </ThemeProvider>
             </body>

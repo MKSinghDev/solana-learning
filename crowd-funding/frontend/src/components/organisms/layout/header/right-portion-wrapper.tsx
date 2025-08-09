@@ -10,7 +10,7 @@ const RightPortionWrapper = ({ children }: { children: React.ReactNode }) => {
     return (
         <div
             className={cn(
-                'flex items-center gap-2 shrink-0',
+                'flex items-center gap-3 shrink-0',
                 clsx({ 'max-md:hidden': pathname !== '/', 'ml-auto': pathname === '/' })
             )}
         >

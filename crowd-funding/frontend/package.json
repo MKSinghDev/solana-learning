@@ -16,6 +16,9 @@
         "commit": "commitizen"
     },
     "dependencies": {
+        "@base-ui-components/react": "^1.0.0-beta.2",
+        "@conform-to/react": "^1.8.2",
+        "@conform-to/zod": "^1.8.2",
         "@coral-xyz/anchor": "^0.31.1",
         "@radix-ui/react-accordion": "^1.2.11",
         "@radix-ui/react-avatar": "^1.1.10",
@@ -43,6 +46,7 @@
         "sonner": "^2.0.7",
         "tailwind-merge": "^3.3.1",
         "uuid": "^11.1.0",
+        "zod": "^4.0.16",
         "zustand": "^5.0.7"
     },
     "devDependencies": {
