@@ -1,7 +1,8 @@
 'use client';
 
 import { CSSProperties, useId, useState } from 'react';
-import { ChevronDownIcon, ChevronUpIcon, GripVerticalIcon } from 'lucide-react';
+import Link from 'next/link';
+import { BanknoteArrowDown, BanknoteArrowUp, ChevronDownIcon, ChevronUpIcon, GripVerticalIcon } from 'lucide-react';
 
 import { BN, web3 } from '@coral-xyz/anchor';
 import {
@@ -30,15 +31,17 @@ import {
 } from '@tanstack/react-table';
 
 import { Badge } from '~/components/ui/badge';
-import { Button } from '~/components/ui/button';
+import { Button, buttonVariants } from '~/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table';
 import walletStore from '~/lib/stores/wallet-store';
+import { cn } from '~/lib/utils';
 
 type Item = {
     admin: PublicKey;
     name: string;
     description: string;
     amountDonated: BN;
+    balance: number;
     address: string;
 };
 
@@ -95,6 +98,38 @@ const columns: ColumnDef<Item>[] = [
                 currency: 'SOL',
             }).format(amount);
             return formatted;
+        },
+    },
+    {
+        id: 'balance',
+        header: 'Balance',
+        accessorKey: 'balance',
+        cell: ({ row }) => {
+            const amount = parseFloat(((row.getValue('balance') as number) / web3.LAMPORTS_PER_SOL).toString());
+            const formatted = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'SOL',
+            }).format(amount);
+            return formatted;
+        },
+    },
+    {
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => {
+            const currentUserAddress = walletStore.getState().address;
+            const { address, admin } = row.original;
+            return currentUserAddress?.toString() === admin.toString() ? (
+                <Link href={`/campaigns/${address}/withdraw`} className={cn(buttonVariants())}>
+                    <BanknoteArrowDown className="mr-2 size-4" />
+                    Withdraw
+                </Link>
+            ) : (
+                <Link href={`/campaigns/${address}/donate`} className={cn(buttonVariants())}>
+                    <BanknoteArrowUp className="mr-2 size-4" />
+                    Donate
+                </Link>
+            );
         },
     },
 ];

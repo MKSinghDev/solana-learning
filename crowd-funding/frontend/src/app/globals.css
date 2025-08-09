@@ -201,28 +201,6 @@
     --animate-slide-infinite: slide-infinite 20s linear infinite;
 }
 
-/* width */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-/* Track */
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 5px;
-}
-
-/* Handle */
-::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 5px;
-}
-
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
-
 @layer utilities {
     .brand-gradient {
         @apply bg-gradient-to-r from-sky-500 via-purple-500 to-pink-500 text-white shadow-sm transition-opacity hover:opacity-90;

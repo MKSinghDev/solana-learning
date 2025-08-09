@@ -34,7 +34,7 @@ pub mod crowd_funding {
         }
 
         **campaign.to_account_info().try_borrow_mut_lamports()? -= amount;
-        **campaign.to_account_info().try_borrow_mut_lamports()? += amount;
+        **user.to_account_info().try_borrow_mut_lamports()? += amount;
 
         Ok(())
     }
@@ -60,7 +60,7 @@ pub mod crowd_funding {
 
 #[derive(Accounts)]
 pub struct Create<'info> {
-    #[account(init, payer=user, space=9000, seeds=[b"MKSINGH_CAMPAIGN".as_ref(), user.key().as_ref()], bump)]
+    #[account(init, payer=user, space=9000, seeds=[b"CAMPAIGN".as_ref(), user.key().as_ref()], bump)]
     pub campaign: Account<'info, Campaign>,
 
     #[account(mut)]

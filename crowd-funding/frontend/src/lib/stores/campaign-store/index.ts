@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
-import { AccountClient, AnchorProvider, Program, utils, Wallet, web3 } from '@coral-xyz/anchor';
+import { AccountClient, AnchorProvider, BN, Program, utils, Wallet, web3 } from '@coral-xyz/anchor';
 import { clusterApiUrl, ConfirmOptions, Connection, PublicKey } from '@solana/web3.js';
 import walletStore from '~/lib/stores/wallet-store';
 import idl from '~/lib/program/idl.json';
@@ -18,7 +18,9 @@ interface State {
     status: 'idle' | 'success' | 'error' | 'busy';
     network: string;
     opts: ConfirmOptions;
-    campaigns?: Array<Awaited<ReturnType<AccountClient<CrowdFunding, 'campaign'>['fetch']>> & { address: string }>;
+    campaigns?: Array<
+        Awaited<ReturnType<AccountClient<CrowdFunding, 'campaign'>['fetch']>> & { address: string; balance: number }
+    >;
 }
 
 interface ErrorResponse {
@@ -35,6 +37,9 @@ interface Action {
     getProvider: () => AnchorProvider;
     createCampaign: ({ name, description }: { name: string; description: string }) => Promise<Response>;
     fetchCampaigns: () => Promise<void>;
+    getCurrentBalance: ({ campaign }: { campaign: string }) => Promise<number>;
+    donate: ({ campaign, amount }: { campaign: string; amount: number }) => Promise<Response>;
+    withdraw: ({ campaign, amount }: { campaign: string; amount: number }) => Promise<Response>;
 }
 
 interface Store extends State, Action {}
@@ -128,6 +133,7 @@ const campaignStore = create<Store>()(
                     const campaigns = await Promise.all(
                         (await connection.getProgramAccounts(program.programId)).map(async campaign => ({
                             ...(await program.account.campaign.fetch(campaign.pubkey)),
+                            balance: await get().getCurrentBalance({ campaign: campaign.pubkey.toBase58() }),
                             address: campaign.pubkey.toBase58(),
                         }))
                     );
@@ -138,6 +144,84 @@ const campaignStore = create<Store>()(
                 } catch (error) {
                     console.log(error);
                     dispatchToast({ type: 'error', message: { title: 'Error', description: (error as Error).message } });
+                } finally {
+                    set(prev => {
+                        prev.status = 'idle';
+                    });
+                }
+            },
+
+            getCurrentBalance: async ({ campaign }) => {
+                const provider = get().getProvider();
+                const balance = await provider.connection.getBalance(new PublicKey(campaign));
+
+                const rentExemptBalance = await provider.connection.getMinimumBalanceForRentExemption(9000); // Your campaign account size
+                const availableBalance = balance - rentExemptBalance;
+
+                return Math.max(0, availableBalance); // Don't show negative
+            },
+
+            donate: async ({ campaign, amount }) => {
+                try {
+                    set(prev => {
+                        prev.status = 'busy';
+                    });
+                    if (walletStore.getState().state !== 'connected') {
+                        console.log({ status: 'error', message: Messages.WALLET_NOT_CONNECTED });
+                        return { status: 'error', message: Messages.WALLET_NOT_CONNECTED };
+                    }
+
+                    const provider = get().getProvider();
+                    const program = new Program<CrowdFunding>(idl, provider);
+
+                    await program.rpc.donate(new BN(amount * web3.LAMPORTS_PER_SOL), {
+                        accounts: {
+                            campaign: new PublicKey(campaign),
+                            user: provider.wallet.publicKey,
+                            systemProgram: web3.SystemProgram.programId,
+                        },
+                    });
+                    return {
+                        status: 'success',
+                        message: `Donation made successfully`,
+                    };
+                } catch (error) {
+                    console.log(error);
+                    return { status: 'error', message: (error as Error).message };
+                } finally {
+                    set(prev => {
+                        prev.status = 'idle';
+                    });
+                }
+            },
+
+            withdraw: async ({ campaign, amount }) => {
+                try {
+                    set(prev => {
+                        prev.status = 'busy';
+                    });
+
+                    if (walletStore.getState().state !== 'connected') {
+                        console.log({ status: 'error', message: Messages.WALLET_NOT_CONNECTED });
+                        return { status: 'error', message: Messages.WALLET_NOT_CONNECTED };
+                    }
+
+                    const provider = get().getProvider();
+                    const program = new Program<CrowdFunding>(idl, provider);
+
+                    const res = await program.rpc.withdraw(new BN(amount * web3.LAMPORTS_PER_SOL), {
+                        accounts: {
+                            campaign: new PublicKey(campaign),
+                            user: provider.wallet.publicKey,
+                        },
+                    });
+                    return {
+                        status: 'success',
+                        message: `Withdrawal made successfully ${res}`,
+                    };
+                } catch (error) {
+                    console.log(error);
+                    return { status: 'error', message: (error as Error).message };
                 } finally {
                     set(prev => {
                         prev.status = 'idle';
@@ -156,3 +240,5 @@ export const useGetProvider = () => campaignStore(state => state.getProvider);
 export const useCreateCampaign = () => campaignStore(state => state.createCampaign);
 export const useFetchCampaigns = () => campaignStore(state => state.fetchCampaigns);
 export const useGetCampaigns = () => campaignStore(state => state.campaigns);
+export const useDonate = () => campaignStore(state => state.donate);
+export const useWithdraw = () => campaignStore(state => state.withdraw);
