@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 
 import { useFetchCampaigns, useGetCampaigns, useGetStatus } from '~/lib/stores/campaign-store';
 
+import DataTable from './table';
+
 const CampaignsList = () => {
     const status = useGetStatus();
     const fetchCampaigns = useFetchCampaigns();
@@ -17,7 +19,7 @@ const CampaignsList = () => {
     if (status === 'busy') return <div>Loading campaigns...</div>;
     if (!campaigns) return <div>No campaigns found</div>;
 
-    return <pre>{JSON.stringify(campaigns, null, 2)}</pre>;
+    return <DataTable data={campaigns} />;
 };
 
 export default CampaignsList;

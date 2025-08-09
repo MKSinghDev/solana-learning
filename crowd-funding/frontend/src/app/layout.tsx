@@ -3,7 +3,8 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 
-import { ThemeProvider } from '~/components/molecules/theme-provider';
+import NativeExtensionsProvider from '~/components/providers/native-extension';
+import { ThemeProvider } from '~/components/providers/theme-provider';
 import { Toaster } from '~/components/ui/sonner';
 import InitWallet from '~/lib/stores/wallet-store/init-wallet';
 import { cn } from '~/lib/utils';
@@ -19,11 +20,13 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
     return (
         <html lang="en" suppressHydrationWarning>
             <body className={cn(inter.className, 'flex flex-col min-h-svh antialiased')}>
-                <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-                    <InitWallet />
-                    <Toaster richColors position="top-right" />
-                    {children}
-                </ThemeProvider>
+                <NativeExtensionsProvider>
+                    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+                        <InitWallet />
+                        <Toaster richColors position="top-right" />
+                        {children}
+                    </ThemeProvider>
+                </NativeExtensionsProvider>
             </body>
         </html>
     );

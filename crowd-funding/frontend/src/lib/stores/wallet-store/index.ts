@@ -52,7 +52,7 @@ const initialState: WalletState = {
     state: 'not-initialized',
 };
 
-const store = create<WalletStore>()(
+const walletStore = create<WalletStore>()(
     devtools(
         immer((set, get) => ({
             ...initialState,
@@ -177,11 +177,12 @@ const store = create<WalletStore>()(
     )
 );
 
-export default store;
+export default walletStore;
 
-export const useGetIsConnected = () => store(state => state.state === 'connected');
-export const useInitWallet = () => store(state => state.init);
-export const useConnectWallet = () => store(state => state.connect);
-export const useDisconnectWallet = () => store(state => state.disconnect);
-export const useGetState = () => store(state => state.state);
-export const useGetAddress = () => store(state => state.address);
+export const useGetIsConnected = () => walletStore(state => state.state === 'connected');
+export const useInitWallet = () => walletStore(state => state.init);
+export const useConnectWallet = () => walletStore(state => state.connect);
+export const useDisconnectWallet = () => walletStore(state => state.disconnect);
+export const useGetStatus = () => walletStore(state => state.status);
+export const useGetState = () => walletStore(state => state.state);
+export const useGetAddress = () => walletStore(state => state.address);

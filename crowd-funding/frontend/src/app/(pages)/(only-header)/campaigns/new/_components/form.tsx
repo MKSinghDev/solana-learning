@@ -43,7 +43,7 @@ const Form = () => {
             <FormInput field={fields.description} label="Campaign description" />
 
             <div className="flex w-full items-center justify-between mt-4">
-                <Link href=".." className={buttonVariants({ variant: 'secondary' })}>
+                <Link href="." className={buttonVariants({ variant: 'secondary' })}>
                     Cancel
                 </Link>
                 <ButtonWithLoader type="submit" className="w-fit" loading={status === 'busy'}>

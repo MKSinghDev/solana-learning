@@ -18,7 +18,7 @@ interface State {
     status: 'idle' | 'success' | 'error' | 'busy';
     network: string;
     opts: ConfirmOptions;
-    campaigns?: Array<Awaited<ReturnType<AccountClient<CrowdFunding, 'campaign'>['fetch']>>>;
+    campaigns?: Array<Awaited<ReturnType<AccountClient<CrowdFunding, 'campaign'>['fetch']>> & { address: string }>;
 }
 
 interface ErrorResponse {
