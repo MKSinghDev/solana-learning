@@ -1,0 +1,19 @@
+{
+    "name": "staking",
+    "module": "index.ts",
+    "type": "module",
+    "private": true,
+    "scripts": {
+        "dev": "bun run --watch ./src/index.ts",
+        "build": "bun run build"
+    },
+    "devDependencies": {
+        "@types/bun": "latest"
+    },
+    "peerDependencies": {
+        "typescript": "^5"
+    },
+    "dependencies": {
+        "@solana/web3.js": "^1.98.4"
+    }
+}
