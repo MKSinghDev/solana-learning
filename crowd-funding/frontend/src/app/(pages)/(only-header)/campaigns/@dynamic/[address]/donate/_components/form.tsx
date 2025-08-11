@@ -4,13 +4,14 @@ import { useParams, useRouter } from 'next/navigation';
 
 import { useForm } from '@conform-to/react';
 import { parseWithZod } from '@conform-to/zod/v4';
+import { useQuery } from '@tanstack/react-query';
 
 import FormInput from '~/components/atoms/form-elements/input';
 import ButtonWithLoader from '~/components/molecules/button-with-loader';
 import { Button } from '~/components/ui/button';
 import { DialogClose, DialogFooter } from '~/components/ui/dialog';
 import { dispatchToast } from '~/lib/message-handler';
-import { useDonate, useFetchCampaigns, useGetStatus } from '~/lib/stores/campaign-store';
+import { useDonate, useGetStatus } from '~/lib/stores/campaign-store';
 
 import { schema } from './schema';
 
@@ -19,7 +20,8 @@ const Form = () => {
     const router = useRouter();
     const status = useGetStatus();
     const donate = useDonate();
-    const reFetchCampaigns = useFetchCampaigns();
+    const { refetch } = useQuery({ queryKey: ['campaigns'] });
+
     const [form, fields] = useForm({
         shouldValidate: 'onSubmit',
         shouldRevalidate: 'onInput',
@@ -36,7 +38,7 @@ const Form = () => {
                 message: res.message,
             });
 
-            await reFetchCampaigns();
+            await refetch();
             if (res.status === 'success') router.push('..');
         },
     });

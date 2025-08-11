@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 
 import NativeExtensionsProvider from '~/components/providers/native-extension';
+import TanstackQueryProvider from '~/components/providers/tanstack-query-provider';
 import { ThemeProvider } from '~/components/providers/theme-provider';
 import { Toaster } from '~/components/ui/sonner';
 import InitWallet from '~/lib/stores/wallet-store/init-wallet';
@@ -20,13 +21,15 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
     return (
         <html lang="en" suppressHydrationWarning>
             <body className={cn(inter.className, 'flex flex-col min-h-svh antialiased')}>
-                <NativeExtensionsProvider>
-                    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-                        <InitWallet />
-                        <Toaster richColors position="top-right" />
-                        {children}
-                    </ThemeProvider>
-                </NativeExtensionsProvider>
+                <TanstackQueryProvider>
+                    <NativeExtensionsProvider>
+                        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+                            <InitWallet />
+                            <Toaster richColors position="top-right" />
+                            {children}
+                        </ThemeProvider>
+                    </NativeExtensionsProvider>
+                </TanstackQueryProvider>
             </body>
         </html>
     );

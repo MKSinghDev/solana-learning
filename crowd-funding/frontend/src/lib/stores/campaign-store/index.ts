@@ -3,24 +3,22 @@ import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
 import { AccountClient, AnchorProvider, BN, Program, utils, Wallet, web3 } from '@coral-xyz/anchor';
-import { clusterApiUrl, ConfirmOptions, Connection, PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 import walletStore from '~/lib/stores/wallet-store';
 import idl from '~/lib/program/idl.json';
 import { dispatchToast } from '~/lib/message-handler';
 import { CrowdFunding } from '~/lib/program/crowd_funding';
+import { config } from '~/lib/config/solana';
 
 enum Messages {
     WALLET_NOT_CONNECTED = 'Wallet not connected',
     PROVIDER_NOTFOUND = 'Provider not found',
 }
 
+type Campaign = Awaited<ReturnType<AccountClient<CrowdFunding, 'campaign'>['fetch']>> & { address: string; balance: number };
+
 interface State {
     status: 'idle' | 'success' | 'error' | 'busy';
-    network: string;
-    opts: ConfirmOptions;
-    campaigns?: Array<
-        Awaited<ReturnType<AccountClient<CrowdFunding, 'campaign'>['fetch']>> & { address: string; balance: number }
-    >;
 }
 
 interface ErrorResponse {
@@ -36,7 +34,7 @@ type Response = ErrorResponse | SuccessResponse;
 interface Action {
     getProvider: () => AnchorProvider;
     createCampaign: ({ name, description }: { name: string; description: string }) => Promise<Response>;
-    fetchCampaigns: () => Promise<void>;
+    getCampaigns: () => Promise<Array<Campaign>>;
     getCurrentBalance: ({ campaign }: { campaign: string }) => Promise<number>;
     donate: ({ campaign, amount }: { campaign: string; amount: number }) => Promise<Response>;
     withdraw: ({ campaign, amount }: { campaign: string; amount: number }) => Promise<Response>;
@@ -46,8 +44,6 @@ interface Store extends State, Action {}
 
 const initialState: State = {
     status: 'idle',
-    network: clusterApiUrl('devnet'),
-    opts: { preflightCommitment: 'finalized' },
 };
 
 const campaignStore = create<Store>()(
@@ -61,7 +57,7 @@ const campaignStore = create<Store>()(
                         throw new Error(Messages.WALLET_NOT_CONNECTED);
                     }
 
-                    const { network, opts } = get();
+                    const { network, opts } = config;
                     const connection = new Connection(network, opts.preflightCommitment);
                     const provider = new AnchorProvider(connection, window.solana as unknown as Wallet, opts);
                     return provider;
@@ -111,44 +107,34 @@ const campaignStore = create<Store>()(
                 }
             },
 
-            fetchCampaigns: async () => {
-                try {
-                    set(prev => {
-                        prev.status = 'busy';
+            getCampaigns: async () => {
+                if (walletStore.getState().state !== 'connected') {
+                    console.log({ status: 'error', message: Messages.WALLET_NOT_CONNECTED });
+                    dispatchToast({
+                        type: 'error',
+                        message: { title: 'Error', description: Messages.WALLET_NOT_CONNECTED },
                     });
-
-                    if (walletStore.getState().state !== 'connected') {
-                        console.log({ status: 'error', message: Messages.WALLET_NOT_CONNECTED });
-                        dispatchToast({
-                            type: 'error',
-                            message: { title: 'Error', description: Messages.WALLET_NOT_CONNECTED },
-                        });
-                        return;
-                    }
-
-                    const { network, opts } = get();
-                    const connection = new Connection(network, opts.preflightCommitment);
-                    const provider = get().getProvider();
-                    const program = new Program<CrowdFunding>(idl, provider);
-                    const campaigns = await Promise.all(
-                        (await connection.getProgramAccounts(program.programId)).map(async campaign => ({
-                            ...(await program.account.campaign.fetch(campaign.pubkey)),
-                            balance: await get().getCurrentBalance({ campaign: campaign.pubkey.toBase58() }),
-                            address: campaign.pubkey.toBase58(),
-                        }))
-                    );
-                    console.log({ campaigns });
-                    set(prev => {
-                        prev.campaigns = campaigns;
-                    });
-                } catch (error) {
-                    console.log(error);
-                    dispatchToast({ type: 'error', message: { title: 'Error', description: (error as Error).message } });
-                } finally {
-                    set(prev => {
-                        prev.status = 'idle';
-                    });
+                    throw new Error(Messages.WALLET_NOT_CONNECTED);
                 }
+
+                if (get().status === 'busy') throw new Error('Busy');
+
+                set(prev => {
+                    prev.status = 'busy';
+                });
+
+                const { network, opts } = config;
+                const connection = new Connection(network, opts.preflightCommitment);
+                const provider = get().getProvider();
+                const program = new Program<CrowdFunding>(idl, provider);
+                const campaigns = await Promise.all(
+                    (await connection.getProgramAccounts(program.programId)).map(async campaign => ({
+                        ...(await program.account.campaign.fetch(campaign.pubkey)),
+                        balance: await get().getCurrentBalance({ campaign: campaign.pubkey.toBase58() }),
+                        address: campaign.pubkey.toBase58(),
+                    }))
+                );
+                return campaigns;
             },
 
             getCurrentBalance: async ({ campaign }) => {
@@ -238,7 +224,6 @@ export default campaignStore;
 export const useGetStatus = () => campaignStore(state => state.status);
 export const useGetProvider = () => campaignStore(state => state.getProvider);
 export const useCreateCampaign = () => campaignStore(state => state.createCampaign);
-export const useFetchCampaigns = () => campaignStore(state => state.fetchCampaigns);
-export const useGetCampaigns = () => campaignStore(state => state.campaigns);
+export const useGetCampaigns = () => campaignStore(state => state.getCampaigns);
 export const useDonate = () => campaignStore(state => state.donate);
 export const useWithdraw = () => campaignStore(state => state.withdraw);
