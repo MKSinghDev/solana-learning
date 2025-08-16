@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getCookie, setCookie, } from "@tanstack/react-start/server";
-import { schema, ThemedefinedByMap } from ".";
+import { getCookie, setCookie } from "@tanstack/react-start/server";
+import { schema, ThemedefinedByMap, type ThemeIdentifier } from "./schema";
 
 export const storageKey = "ui-theme";
 
@@ -11,7 +11,12 @@ export const getThemeServerFn = createServerFn().handler(async () => {
         return null;
     }
 
-    const { success, data } = schema.safeParse(ThemedefinedByMap[themeCookie]);
+    // Type guard to ensure themeCookie is a valid ThemeIdentifier
+    if (!(themeCookie in ThemedefinedByMap)) {
+        throw new Error("Invalid theme exists");
+    }
+
+    const { success, data } = schema.safeParse(ThemedefinedByMap[themeCookie as ThemeIdentifier]);
     if (!success) {
         throw new Error("Invalid theme exists");
     }
@@ -28,5 +33,9 @@ export const setThemeServerFn = createServerFn({ method: "POST" })
         return data.identifier;
     })
     .handler(async ({ data }) => {
-        setCookie(storageKey, data);
+        setCookie(storageKey, data, {
+            maxAge: 60 * 60 * 24 * 30 * 12, // 12 months
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+        });
     });

@@ -16,4 +16,3 @@ export const schema = z.object({
 });
 
 export type ThemeType = z.infer<typeof schema>;
-

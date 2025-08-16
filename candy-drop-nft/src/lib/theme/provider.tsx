@@ -1,8 +1,10 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useEffect } from "react"
-import { setThemeServerFn, ThemeType, ThemeIdentifier, useMediaQuery } from "."
-import { useRouter } from "@tanstack/react-router"
+import { createContext, useContext, useEffect } from "react";
+import { setThemeServerFn } from "./action";
+import { ThemeType, ThemeIdentifier } from "./schema";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
+import { useRouter } from "@tanstack/react-router";
 
 const COLOR_SCHEME_QUERY = '(prefers-color-scheme: dark)';
 
@@ -49,6 +51,7 @@ export function ThemeProvider({
 
         if (!value) {
             root.classList.add(matchedMode)
+            themeCookieSetter(`s${matchedMode[0]}` as ThemeIdentifier)
             return
         }
 

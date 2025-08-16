@@ -10,7 +10,7 @@ import {
 
 import appCss from "~/styles/app.css?url";
 import Devtools from '~/components/misc/devtools';
-import { getThemeServerFn, ThemeProvider, useTheme } from '~/components/misc/theme';
+import { getThemeServerFn, ThemeProvider, useTheme } from '~/lib/theme';
 
 export const Route = createRootRoute({
     head: () => ({
