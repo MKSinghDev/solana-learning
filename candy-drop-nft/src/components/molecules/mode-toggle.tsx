@@ -6,8 +6,8 @@ import { Button, buttonVariants } from '~/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '~/components/ui/dropdown-menu';
 import { Label } from '~/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group';
+import { useTheme } from '~/lib/theme';
 import { cn } from '~/lib/utils';
-import { useTheme } from '~/components/misc/theme';
 
 const items = [
     { id: 'radio-18-r3', value: 'system', label: 'System', image: '/images/icons/ui-system.png', icon: Monitor },

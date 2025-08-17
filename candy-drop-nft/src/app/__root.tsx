@@ -34,7 +34,8 @@ export const Route = createRootRoute({
         ],
     }),
     component: RootComponent,
-    loader: () => getThemeServerFn(),
+    beforeLoad: async () => await getThemeServerFn(),
+    loader: ({ context }) => context?.theme ? context : null,
 })
 
 function RootComponent() {
